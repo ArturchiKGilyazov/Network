@@ -25,7 +25,7 @@ public class App {
     }
 
     public void findClone(){
-        while(){
+        while(true){
 
         }
     }
