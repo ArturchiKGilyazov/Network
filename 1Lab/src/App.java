@@ -6,7 +6,7 @@ import java.util.*;
 public class App {
         private MulticastSocket socket;
         private SocketAddress multicastAddr;
-        private int TIMEOUT = 2000;
+        private int TIMEOUT = 5000;
         private int UPDATE_TIMEOUT = 3000;
         private long lastSendtime;
         private long lastRecvtime;
@@ -23,7 +23,7 @@ public class App {
     //List<Long> DIMA = new LinkedList<Long>();
 
 
-    App(String message_, String IP_, int port_) throws IOException {
+    App(String IP_, int port_) throws IOException {
         //this.message = message_;
         //this.IP = IP_;
         //this.port = port_;
@@ -67,11 +67,11 @@ public class App {
                 clone.remove(value);
             }
 
-            clone.clear();
+            abort.clear();
             System.out.println(clone.size());
-            for (Map.Entry<String, Long> entry: clone.entrySet()){
-                System.out.println(entry.getKey() + new Date(entry.getValue()));
-            }
+//            for (Map.Entry<String, Long> entry: clone.entrySet()){
+//                System.out.println(entry.getKey() + new Date(entry.getValue()));
+//            }
 
         }
 
