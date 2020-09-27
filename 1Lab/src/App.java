@@ -1,41 +1,38 @@
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class App {
         private MulticastSocket socket;
         private SocketAddress multicastAddr;
-        private int TIMEOUT = 5000;
-        private int UPDATE_TIMEOUT = 3000;
+        private int TIMEOUT = 2000;
+        private int UPDATE_TIMEOUT = 5000;
         private long lastSendtime;
         private long lastRecvtime;
-//    private String message;
-//    private String IP;
-//    private int port;
-//    private SocketAddress address;
-//    private MulticastSocket socket = new MulticastSocket(port);
-//    private int timeout = 3000;
-//    private HashMap<String, Long> clone = new HashMap<String, Long>();
-//    long LastTimeOut = 3000;
-//    long secondTimeout = 2000;
 
-    //List<Long> DIMA = new LinkedList<Long>();
+        private byte[] id;
+        //private UUID uid;
 
+    public byte[] getUUID() {
+
+        UUID uuid = UUID.randomUUID();
+        System.out.println(uuid);
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        id = bb.array();
+
+        return  id;
+    }
 
     App(String IP_, int port_) throws IOException {
-        //this.message = message_;
-        //this.IP = IP_;
-        //this.port = port_;
-        //socket.setSoTimeout(timeout);
-        //address = new InetSocketAddress(IP, port);
-
-        //socket.joinGroup(this.address, NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
-        //clone.clear();
-        //findClone();
 
         this.multicastAddr = new InetSocketAddress(IP_, port_);
         socket = new MulticastSocket(port_);
+        //uid = UUID.randomUUID();
+        id = getUUID();
+        //System.out.println();
         NetworkInterface NF = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
         socket.setSoTimeout(TIMEOUT);
         socket.joinGroup(this.multicastAddr, NF);
@@ -46,13 +43,15 @@ public class App {
         lastSendtime = System.currentTimeMillis();
         Map<String, Long> clone = new HashMap<String, Long>();
         LinkedList<String> abort = new LinkedList<>();
+        //System.out.println(id);
 
         while (true){
             if (System.currentTimeMillis() - lastSendtime > TIMEOUT){
-                send("F");
+                //System.out.println(id);
+                send(id);
             }
 
-            var lip = recieve();
+            var lip = receive();
             if (lip != null){
                 clone.put(lip, lastRecvtime);
             }
@@ -69,70 +68,43 @@ public class App {
 
             abort.clear();
             System.out.println(clone.size());
-//            for (Map.Entry<String, Long> entry: clone.entrySet()){
-//                System.out.println(entry.getKey() + new Date(entry.getValue()));
-//            }
+            for (Map.Entry<String, Long> entry: clone.entrySet()){
+                System.out.println(entry.getKey());
+            }
 
         }
 
     }
 
-    public void send(String message) throws IOException {
-        byte[] messByte = message.getBytes();
+    public void send(byte[] uuid) throws IOException {
+        byte[] messByte = uuid;
+        //System.out.println(uuid);
         DatagramPacket sendPacket = new DatagramPacket(messByte, messByte.length, multicastAddr);
         socket.send(sendPacket);
         lastSendtime = System.currentTimeMillis();
     }
 
-    public String recieve(){
+    public String receive() {
         byte[] messByte = new byte[255];
         DatagramPacket recvPacket = new DatagramPacket(messByte, messByte.length);
         try {
             socket.receive(recvPacket);
             lastRecvtime = System.currentTimeMillis();
-
         } catch (IOException e) {
             return null;
         }
-        return recvPacket.getAddress().toString();
+
+        byte[] recvData = recvPacket.getData();
+        //System.out.println(recvData);
+        ByteBuffer bb = ByteBuffer.wrap(recvData);
+        long firstLong = bb.getLong();
+        long secondLong = bb.getLong();
+        UUID uuid = new UUID(firstLong, secondLong);
+
+        //System.out.println(uuid);
+
+        String retRecv = "ip: " + recvPacket.getAddress().toString() + "\nid: " + uuid + "\n";// re
+        return retRecv;
+
     }
 }
-/*
-    public void findClone() throws IOException {
-        LastTimeOut = System.currentTimeMillis();
-        while(true){
-            if ((System.currentTimeMillis() - LastTimeOut) > timeout){
-                sendMessage("F");
-            }
-            String message = reciveMessage();
-
-            if (!message.isEmpty()){
-                clone.put(message, secondTimeout);
-            }
-
-            //for(HashMap<String, Long> entry: )
-            //for (int i = 0; i < clone.size(); i++){
-            /*for (HashMap<String, Long> i: clone){
-
-            }*/
-/*
-            for (HashMap.Entry<String, Long> entry: clone.entrySet()){
-                if ((System.currentTimeMillis() - entry.getValue()) > timeout){
-                    DIMA.add(entry.getValue());
-
-                }
-            }
-
-            System.out.println(clone.size());
-            for (Long entyty: DIMA){
-                clone.remove(entyty.longValue());
-            }
-            DIMA.clear();*/
-/*
-            for (Map.Entry entry: Map.of().entrySet()){
-                if ((System.currentTimeMillis() - entry.getValue()) > timeout)
-            }*/
-
-            /*for (Object entry: clone) {
-                if (System.currentTimeMillis() - i.value) clone.remove()
-         */
